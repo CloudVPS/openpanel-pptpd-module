@@ -60,10 +60,10 @@ class Pptpd:Users           < uuid dca2c2fb-c791-45d3-9585-edecbb8b1199
                             < title Users
                             < description PPtP Users
                             < capabilities update create delete admin
-                            < listview username password
+                            < listview username
                             < required username password
 
-    string username         : Interface name
+    string username         : Username
 
     password password       : Password
 
