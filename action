@@ -1,0 +1,117 @@
+#!/bin/bash
+. /var/openpanel/api/sh/module.sh
+. /var/openpanel/modules/Networking.module/localfunctions.sh
+
+Module.getconfig() {
+    cat << _EOF_
+<openpanel.module>
+  <dict id="Pptpd" type="class">
+    <dict id="pptpd" type="object">
+      <bool id="pptpd_enabled">true</bool>
+    </dict>
+  </dict>
+  <dict id="OpenCORE:Result">
+    <integer id="error">0</integer>
+    <string id="message">OK</string>
+  </dict>
+</openpanel.module>
+_EOF_
+    exitquiet
+}
+
+Pptpd.update() {
+    pptpd_enabled=$(coreval Pptpd pptpd_enabled)
+    pptpd_nat_enabled=$(coreval Pptpd pptpd_nat_enabled)
+    pptpd_localip=$(coreval Pptpd pptpd_localip)
+
+    if [ "${pptpd_enabled}" = "false" ]; then
+        authd stopservice pptpd
+        authd runscript pptpd-disable
+        authd deletefile /etc/openpanel/pptpd/enable_nat
+        exitok
+    else
+        authd reloadservice pptpd
+        authd runscript pptpd-enable
+    fi
+
+    NETWORK=$(echo ${pptpd_localip} | cut -f1-3 -d.)
+    LAST_OCTET=$(echo ${pptpd_localip} | cut -f4 -d.)
+
+    RANGE=""
+    START=1
+    END=1
+    for i in `seq 1 253`; do 
+        [ ${START} -eq ${LAST_OCTET} ] && START=$((${START}+1))
+        [ ${i} -eq ${LAST_OCTET} ] || END=${i}
+        [ ${i} -eq ${LAST_OCTET} ] && {
+            [ ${START} -gt ${END} ] && END=${START} && continue
+            [ ${START} -eq ${END} ] && RANGE="${RANGE}${NETWORK}.${START} " && START=$((${START}+1)) && continue
+            RANGE="${RANGE}${NETWORK}.${START}-${END} "
+            START=$((${END}+2))
+            continue
+        }
+    done
+    RANGE="${RANGE}${NETWORK}.${START}-${END} "
+    RANGE=$(echo ${RANGE} | sed -e 's/\([0-9]\) \([0-9]\)/\1,\2/g')
+
+cat <<_EOF_ > pptpd.conf
+option /etc/ppp/pptpd-options
+logwtmp
+localip ${pptpd_localip}
+remoteip ${RANGE}
+_EOF_
+
+NAMESERVER=$(cat /etc/resolv.conf | grep 'nameserver' | head -1 | cut -f 2 -d ' ')
+
+cat <<_EOF_ > pptpd-options
+name pptpd
+refuse-pap
+refuse-chap
+refuse-mschap
+require-mschap-v2
+require-mppe-128
+proxyarp
+ms-dns ${NAMESERVER}
+nodefaultroute
+lock
+nobsdcomp 
+_EOF_
+
+    authd installfile pptpd.conf /etc/
+    authd installfile pptpd-options /etc/ppp
+    authd reloadservice pptpd
+
+    if [ "${pptpd_nat_enabled}" = "true" ]; then
+        echo true > enable_nat
+        authd installfile enable_nat /etc/openpanel/pptpd/
+    else
+        authd deletefile /etc/openpanel/pptpd/enable_nat
+    fi
+
+
+    exitok
+}
+
+Pptpd:Users.update() {
+    :>chap-secrets
+
+    for u in `coreval --loop Pptpd Pptpd:Users`; do
+        U_NAME=$(coreval Pptpd Pptpd:Users ${u} username)
+        P_WORD=$(coreval Pptpd Pptpd:Users ${u} password)
+        echo "${U_NAME} pptpd ${P_WORD} *" >> chap-secrets
+    done
+    
+    authd installfile chap-secrets /etc/ppp/
+
+    exitok
+}
+
+Pptpd:Users.delete() {
+    Pptpd:Users.update
+}
+
+Pptpd:Users.create() {
+    Pptpd:Users.update
+}
+
+implement Pptpd.module

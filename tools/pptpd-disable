@@ -1,0 +1,7 @@
+#!/bin/sh
+
+[ -f /etc/rc1.d/K50pptpd ] || exit 0
+
+update-rc.d -f pptpd remove > /dev/null 2>&1
+
+exit 0

@@ -1,0 +1,12 @@
+Source: openpanel-mod-pptpd
+Section: misc
+Priority: optional
+Maintainer: OpenPanel packager <packages@openpanel.com>
+Build-Depends: debhelper (>= 5), openpanel-dev
+Standards-Version: 3.7.2
+
+Package: openpanel-mod-pptpd
+Architecture: all
+Depends: pptpd, ppp
+Description: Configure PPtP tunnels from OpenPanel
+ This will enable you to configure PPtP tunnels

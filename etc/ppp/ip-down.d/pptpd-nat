@@ -1,0 +1,9 @@
+#!/bin/sh
+
+IPTABLES=/sbin/iptables
+
+E_IFACE=$(cat /proc/net/route | cut -f 1-2  | grep 00000000 | cut -f 1)
+
+$IPTABLES -t nat -D POSTROUTING -s ${PPP_REMOTE} -o ${E_IFACE} -j MASQUERADE
+$IPTABLES -D FORWARD -i ${E_IFACE} -o ${IFNAME} -m state --state RELATED,ESTABLISHED -j ACCEPT
+$IPTABLES -D FORWARD -i ${IFNAME} -o ${E_IFACE} -j ACCEPT
