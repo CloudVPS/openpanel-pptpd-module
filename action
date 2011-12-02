@@ -1,6 +1,5 @@
 #!/bin/bash
 . /var/openpanel/api/sh/module.sh
-. /var/openpanel/modules/Networking.module/localfunctions.sh
 
 Module.getconfig() {
     cat << _EOF_
