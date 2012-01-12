@@ -39,7 +39,7 @@ Pptpd.update() {
         authd runscript pptpd-enable
         if [ -d "${IPTABLESDIR}" ]; then
             echo '$IPTABLES -A openpanel -p tcp -s 0.0.0.0/0 --dport 1723 -j openpanel-allow' >> open-pptpd.inc
-            authd installfile open-vrrp.inc ${IPTABLESDIR}
+            authd installfile open-pptpd.inc ${IPTABLESDIR}
             authd runscript iptables-update
         fi
     fi
