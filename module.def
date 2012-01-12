@@ -91,9 +91,15 @@ authd fileops
                             < group root
                             < perms 0644
 
+    match *.inc             : /etc/openpanel/iptables.d
+                            < user root
+                            < group root
+                            < perms 0644
+
 authd services
     service pptpd
 
 authd scripts
     script pptpd-enable
     script pptpd-disable
+    script iptables-update

@@ -23,14 +23,25 @@ Pptpd.update() {
     pptpd_nat_enabled=$(coreval Pptpd pptpd_nat_enabled)
     pptpd_localip=$(coreval Pptpd pptpd_localip)
 
+    IPTABLESDIR=/etc/openpanel/iptables.d
+
     if [ "${pptpd_enabled}" = "false" ]; then
         authd stopservice pptpd
         authd runscript pptpd-disable
         authd deletefile /etc/openpanel/pptpd/enable_nat
+        if [ -f "${IPTABLESDIR}/open-pptpd.inc" ]; then
+            authd deletefile ${IPTABLESDIR}/open-pptpd.inc
+            authd runscript iptables-update
+        fi
         exitok
     else
         authd reloadservice pptpd
         authd runscript pptpd-enable
+        if [ -d "${IPTABLESDIR}" ]; then
+            echo '$IPTABLES -A openpanel -p tcp -s 0.0.0.0/0 --dport 1723 -j openpanel-allow' >> open-pptpd.inc
+            authd installfile open-vrrp.inc ${IPTABLESDIR}
+            authd runscript iptables-update
+        fi
     fi
 
     NETWORK=$(echo ${pptpd_localip} | cut -f1-3 -d.)
