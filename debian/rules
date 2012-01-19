@@ -15,6 +15,7 @@ install:
 	rm -rf ${BUILD_ROOT}
 	mkdir -p ${BUILD_ROOT}/var/openpanel/modules/Pptpd.module
 	install -m 755 action ${BUILD_ROOT}/var/openpanel/modules/Pptpd.module/action
+	install -m 644 pptpd.html ${BUILD_ROOT}/var/openpanel/modules/Pptpd.module/pptpd.html
 	cp module.xml ${BUILD_ROOT}/var/openpanel/modules/Pptpd.module/module.xml
 	cp *.png ${BUILD_ROOT}/var/openpanel/modules/Pptpd.module/
 	install -m 755 verify ${BUILD_ROOT}/var/openpanel/modules/Pptpd.module/verify
