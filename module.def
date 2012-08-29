@@ -79,8 +79,8 @@ authd fileops
 
     match chap-secrets      : /etc/ppp
                             < user root
-                            < group root
-                            < perms 0600
+                            < group openpanel-core
+                            < perms 0640
 
     match pptpd-options     : /etc/ppp
                             < user root

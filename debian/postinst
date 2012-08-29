@@ -29,6 +29,12 @@ set -e
 case "$1" in
     configure)
         [ -d /etc/openpanel/pptpd ] || mkdir /etc/openpanel/pptpd
+        CS=/etc/ppp/chap-secrets
+
+        if [ -f ${CS} ]; then
+            chmod 640 ${CS}
+            chown root:openpanel-core ${CS}
+        fi
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
